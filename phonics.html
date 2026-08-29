@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Phonics">
+<meta name="theme-color" content="#F3F7FB">
+<title>Phonics Practice</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F3F7FB; --card:#FFFFFF; --ink:#1F2D4D; --muted:#6B7A99; --line:#DCE4F0;
+  --tile:#FFF3C4; --tile-edge:#E4C56A; --tile-ink:#3A2E0B;
+  --primary:#5B6CFF; --primary-ink:#fff; --right:#2BB673; --wrong:#F0564D; --warn:#FFA53D;
+  --radius:18px; --shadow:0 4px 14px rgba(31,45,77,.08);
+  --display:'Fredoka','Nunito',system-ui,-apple-system,sans-serif;
+  --body:'Nunito',system-ui,-apple-system,sans-serif;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:18px;-webkit-user-select:none;user-select:none;overscroll-behavior:none}
+input,textarea{-webkit-user-select:text;user-select:text}
+#app{min-height:100%;display:flex;flex-direction:column;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+header.top{display:flex;align-items:center;justify-content:space-between;padding:14px 20px 6px}
+header.top h1{font-family:var(--display);font-weight:600;font-size:26px;margin:0;letter-spacing:.2px}
+header.top .sub{font-size:14px;color:var(--muted);font-weight:700}
+main{flex:1;padding:8px 20px 28px;max-width:760px;width:100%;margin:0 auto}
+h2{font-family:var(--display);font-weight:600;font-size:22px;margin:18px 0 8px}
+h3{font-family:var(--display);font-weight:600;font-size:18px;margin:14px 0 6px}
+p{margin:6px 0;line-height:1.45}
+.muted{color:var(--muted);font-size:15px}
+.card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px;margin:12px 0}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.spread{justify-content:space-between}
+.grow{flex:1}
+button{font-family:var(--body);font-weight:800;font-size:18px;border:0;border-radius:14px;padding:14px 20px;background:#E8ECF7;color:var(--ink);cursor:pointer;touch-action:manipulation}
+button:active{transform:translateY(1px)}
+button:focus-visible{outline:3px solid var(--primary);outline-offset:2px}
+button.primary{background:var(--primary);color:var(--primary-ink)}
+button.ghost{background:transparent;color:var(--primary)}
+button.small{font-size:15px;padding:9px 14px;border-radius:11px}
+button.big{font-size:22px;padding:18px 26px;border-radius:18px}
+button.icon{font-size:26px;padding:12px 16px;line-height:1}
+button:disabled{opacity:.45}
+button.right{background:var(--right);color:#fff}
+button.wrong{background:var(--wrong);color:#fff}
+.hidden{display:none!important}
+/* letter tiles: the app's signature */
+.tile{display:inline-flex;align-items:center;justify-content:center;font-family:var(--display);font-weight:700;color:var(--tile-ink);background:var(--tile);border:2px solid var(--tile-edge);border-bottom-width:5px;border-radius:12px;min-width:58px;height:66px;padding:0 12px;font-size:32px;margin:5px;cursor:pointer;box-shadow:0 2px 0 rgba(0,0,0,.05);transition:transform .08s}
+.tile:active{transform:translateY(3px);border-bottom-width:2px}
+.tile.small{min-width:46px;height:54px;font-size:26px;border-radius:10px}
+.tile.big{min-width:76px;height:88px;font-size:44px}
+.tile.picked{opacity:.25;pointer-events:none}
+.tile.good{background:#D9F5E6;border-color:var(--right)}
+.tile.bad{background:#FBE0DE;border-color:var(--wrong)}
+.tile.slot{background:#fff;border-style:dashed;color:#bbb}
+.tray{display:flex;flex-wrap:wrap;justify-content:center;padding:6px 0}
+.answer{display:flex;flex-wrap:wrap;justify-content:center;min-height:82px;padding:6px;border-radius:16px;background:#EEF2FA;margin:10px 0}
+.word-big{font-family:var(--display);font-weight:700;font-size:64px;text-align:center;margin:18px 0;letter-spacing:1px;line-height:1.1}
+.word-big .hl{color:var(--primary)}
+.prompt{font-size:20px;text-align:center;font-weight:700;margin:10px 0}
+.progress{height:10px;background:#E4E9F4;border-radius:6px;overflow:hidden;margin:8px 0 14px}
+.progress i{display:block;height:100%;background:var(--primary);border-radius:6px;transition:width .3s}
+.feedback{text-align:center;font-family:var(--display);font-size:24px;font-weight:600;min-height:36px;margin:8px 0}
+.feedback.ok{color:var(--right)}.feedback.no{color:var(--wrong)}
+.choices{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:12px 0}
+.choices button{font-family:var(--display);font-size:32px;font-weight:600;padding:22px 10px;border-radius:18px;background:#fff;border:2px solid var(--line);border-bottom-width:5px}
+.choices button.good{background:#D9F5E6;border-color:var(--right)}
+.choices button.bad{background:#FBE0DE;border-color:var(--wrong)}
+.choices.one{grid-template-columns:1fr}
+.plan{list-style:none;padding:0;margin:0}
+.plan li{display:flex;align-items:center;gap:14px;padding:14px 4px;border-bottom:1px solid var(--line)}
+.plan li:last-child{border-bottom:0}
+.plan .dot{width:34px;height:34px;border-radius:50%;background:#E8ECF7;display:flex;align-items:center;justify-content:center;font-weight:800;color:var(--muted);flex-shrink:0}
+.plan .dot.done{background:var(--right);color:#fff}
+.plan .t{font-weight:800;font-size:18px}
+.plan .s{font-size:14px;color:var(--muted)}
+.pill{display:inline-block;font-size:13px;font-weight:800;padding:4px 10px;border-radius:99px;background:#E8ECF7;color:var(--muted)}
+.pill.pending{background:#E8ECF7}.pill.needs-work{background:#FFE9D2;color:#9A5A0B}.pill.passed{background:#DCEBFF;color:#1F4E9A}.pill.mastered{background:#D9F5E6;color:#1B6B42}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin:10px 0}
+.cal .h{font-size:12px;color:var(--muted);text-align:center;font-weight:800}
+.cal .d{aspect-ratio:1;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;background:#EEF2FA;color:var(--muted)}
+.cal .d.g{background:var(--right);color:#fff}.cal .d.o{background:var(--warn);color:#fff}.cal .d.r{background:var(--wrong);color:#fff}.cal .d.today{outline:3px solid var(--primary)}
+.cal .d.sel{box-shadow:0 0 0 3px var(--ink) inset}
+table{width:100%;border-collapse:collapse;font-size:15px}
+td,th{padding:8px 6px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+.ok{color:var(--right);font-weight:800}.no{color:var(--wrong);font-weight:800}
+input[type=text],input[type=password],input[type=number],select{font:inherit;font-size:20px;padding:12px 14px;border:2px solid var(--line);border-radius:12px;width:100%;background:#fff;color:var(--ink)}
+input.sentence{font-family:var(--display);font-size:26px;text-align:center}
+.tabs{display:flex;gap:6px;overflow-x:auto;padding:4px 0 8px}
+.tabs button{white-space:nowrap;font-size:15px;padding:9px 14px;border-radius:99px}
+.tabs button.on{background:var(--ink);color:#fff}
+.story{font-family:var(--display);font-size:30px;line-height:1.6;font-weight:500}
+.story span{padding:2px 4px;border-radius:6px}
+.story span:active{background:#DCEBFF}
+.bar{display:flex;gap:8px;align-items:center;font-size:14px;color:var(--muted)}
+.bar i{flex:1;height:8px;background:#E4E9F4;border-radius:5px;overflow:hidden;display:block}
+.bar i b{display:block;height:100%;background:var(--right)}
+.stat{font-family:var(--display);font-size:34px;font-weight:600}
+.mic{width:96px;height:96px;border-radius:50%;font-size:40px;padding:0;margin:8px auto;display:flex;align-items:center;justify-content:center;background:#fff;border:3px solid var(--line)}
+.mic.rec{background:#FBE0DE;border-color:var(--wrong);animation:pulse 1s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(240,86,77,.5)}100%{box-shadow:0 0 0 18px rgba(240,86,77,0)}}
+.toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:12px 18px;border-radius:12px;font-weight:800;opacity:0;transition:opacity .2s;pointer-events:none;z-index:9}
+.toast.on{opacity:1}
+.stars{font-size:40px;text-align:center;letter-spacing:6px}
+.help{font-size:14px;color:var(--muted);background:#EEF2FA;border-radius:12px;padding:10px 12px;margin:8px 0}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+@media (max-width:420px){.word-big{font-size:48px}.tile{min-width:48px;height:58px;font-size:28px}.choices button{font-size:26px}}
+</style>
+</head>
+<body>
+<div id="app">
+  <header class="top">
+    <div><h1 id="title">Phonics</h1><div class="sub" id="subtitle"></div></div>
+    <div class="row"><button class="small" id="homeBtn">Home</button><button class="small" id="parentBtn">Parent</button></div>
+  </header>
+  <main id="main"></main>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+/* ===================== CONTENT ===================== */
+const PATTERNS = [
+ // ---------- PHASE 1 : verify & patch Grade 1 ----------
+ {id:'digraphs',phase:1,name:'Digraphs',desc:'sh, ch, th, wh, ck, ng',
+  rule:'Two letters, one sound. sh says /sh/, ch says /ch/, th says /th/, wh says /w/, ck says /k/ at the end, ng says /ng/.',
+  read:['ship','chop','that','when','duck','ring','bath','chin'],
+  spell:['fish','rich','moth','sock','sing'],
+  nonsense:['thog','chuck'],
+  pool:['shop','chip','thin','whip','kick','song','wish','much','path','lock','king','shut','chat','thick','which','ship','chop','that','when','duck','ring','bath','chin','fish','rich','moth','sock','sing','rush','dish','check','bench','math','with','long','bang'],
+  sounds:[{g:'sh',kw:['ship','shop','wish']},{g:'ch',kw:['chip','chop','much']},{g:'th',kw:['thin','that','bath']},{g:'wh',kw:['when','whip','which']},{g:'ck',kw:['duck','sock','kick']},{g:'ng',kw:['ring','song','king']}],
+  sentences:['The fish is in the shop.','I wish I had a duck.','Which chip is thick?']},
+ {id:'blends',phase:1,name:'Blends',desc:'st, fl, cr, dr, mp, nd, lk, st',
+  rule:'In a blend you hear both letters, one after the other: f-l in flag, m-p in jump.',
+  read:['stop','flag','crab','drum','jump','hand','milk','nest'],
+  spell:['frog','plant','desk','swim','lamp'],
+  nonsense:['blim','grost'],
+  pool:['step','glad','trip','brush','swing','help','belt','soft','fast','tent','grin','clap','spin','skip','drop','pond','sand','gift','best','mask','stop','flag','crab','drum','jump','hand','milk','nest','frog','plant','desk','swim','lamp','slip','snap','twin','camp','bump','wind','melt'],
+  sounds:[{g:'st',kw:['stop','step','stick']},{g:'fl',kw:['flag','flip','flat']},{g:'cr',kw:['crab','crib','crop']},{g:'dr',kw:['drum','drip','drop']},{g:'mp',kw:['jump','lamp','camp']},{g:'nd',kw:['hand','sand','pond']}],
+  sentences:['The frog can jump on the log.','I must fix the lamp.','The crab is in the sand.']},
+ {id:'floss',phase:1,name:'FLOSS words',desc:'ff, ll, ss, zz, all, oll',
+  rule:'Short word, short vowel, ends in f, l, s or z: double it. puff, bell, kiss, buzz.',
+  read:['puff','bell','kiss','buzz','ball','roll','hill','mess'],
+  spell:['cliff','fill','dress','fizz','small'],
+  nonsense:['griss','tall'],
+  pool:['off','stuff','well','tell','doll','pass','grass','miss','jazz','fuzz','fall','wall','call','toll','poll','puff','bell','kiss','buzz','ball','roll','hill','mess','cliff','fill','dress','fizz','small','sniff','spill','bless','hall','mall','pill','less','boss'],
+  sounds:[{g:'ff',kw:['puff','off','cliff']},{g:'ll',kw:['bell','fill','hill']},{g:'ss',kw:['kiss','mess','dress']},{g:'zz',kw:['buzz','fizz','jazz']},{g:'all',kw:['ball','fall','call']},{g:'oll',kw:['roll','toll','poll']}],
+  sentences:['The ball will roll down the hill.','I will fill the cup.','The bell is off the wall.']},
+ {id:'silent-e',phase:1,name:'Silent e',desc:'a_e, i_e, o_e, u_e, e_e',
+  rule:'The silent e at the end is quiet, but it makes the vowel say its name: hop becomes hope.',
+  read:['cake','ride','hope','cube','these','plane','smile','stove'],
+  spell:['game','five','home','mule','shape'],
+  nonsense:['fape','glime'],
+  pool:['make','bike','rope','tube','late','line','note','cute','time','bone','tape','nine','hole','use','gate','mine','rose','shine','drive','globe','cake','ride','hope','cube','these','plane','smile','stove','game','five','home','mule','shape','kite','cape','pine','robe','wake','life','joke'],
+  pairs:[['hop','hope'],['cut','cute'],['kit','kite'],['tap','tape'],['pin','pine'],['cap','cape'],['not','note'],['rob','robe']],
+  sounds:[{g:'a_e',kw:['cake','make','late']},{g:'i_e',kw:['ride','bike','time']},{g:'o_e',kw:['hope','rope','bone']},{g:'u_e',kw:['cube','tube','cute']},{g:'e_e',kw:['these','Pete','eve']}],
+  sentences:['I made a cake at home.','The kite is on the pine tree.','We ride the bike to the lake.']},
+ {id:'vowel-teams',phase:1,name:'Vowel teams',desc:'ai/ay, ee/ea, oa/ow, igh/ie',
+  rule:'ay and ow go at the end of a word (play, snow). ai and oa go in the middle (rain, boat).',
+  read:['rain','play','feet','seat','boat','snow','pie','night'],
+  spell:['train','tree','coat','day','light'],
+  nonsense:['floam','streep'],
+  pool:['mail','pain','say','way','stay','seed','green','meat','beach','leaf','goat','road','soap','grow','show','yellow','tie','lie','high','right','bright','sight','rain','play','feet','seat','boat','snow','pie','night','train','tree','coat','day','light','sail','clay','sleep','team','float','blow','fight'],
+  sounds:[{g:'ai',kw:['rain','mail','train']},{g:'ay',kw:['play','day','stay']},{g:'ee',kw:['feet','tree','green']},{g:'ea',kw:['seat','meat','leaf']},{g:'oa',kw:['boat','coat','road']},{g:'ow',kw:['snow','grow','show']},{g:'igh',kw:['night','light','high']},{g:'ie',kw:['pie','tie','lie']}],
+  sentences:['Stay and play in the rain.','The goat ate the green leaf.','I see a bright light at night.']},
+ {id:'endings',phase:1,name:'Endings',desc:'-s, -es, -ed, -ing',
+  rule:'One syllable, one vowel, one last consonant: double it before -ed or -ing (hop, hopping). Silent e: drop it first (hope, hoping).',
+  read:['cats','boxes','jumped','wanted','played','running','hopping','hoping'],
+  spell:['wishes','stopped','jumping','baked','sitting'],
+  nonsense:['glapped','trisking'],
+  pool:['dogs','dishes','fixed','hunted','rained','sitting','swimming','biking','hopped','skipped','smiling','wishing','rushes','planted','riding','cats','boxes','jumped','wanted','played','running','hopping','hoping','wishes','stopped','jumping','baked','hats','foxes','landed','shopping','taping','tapping','melted','licked'],
+  sounds:[{g:'s',kw:['cats','dogs','hats']},{g:'es',kw:['boxes','wishes','dishes']},{g:'ed',kw:['jumped','played','wanted']},{g:'ing',kw:['running','sitting','jumping']}],
+  rules:[{q:'hop + ing',a:'hopping',o:['hoping','hopeing']},{q:'hope + ing',a:'hoping',o:['hopping','hopeing']},{q:'stop + ed',a:'stopped',o:['stoped','stopt']},{q:'bake + ed',a:'baked',o:['bakeed','bakked']},{q:'wish + es',a:'wishes',o:['wishs','wishies']},{q:'sit + ing',a:'sitting',o:['siting','siteing']},{q:'jump + ed',a:'jumped',o:['jumpped','jumpt']},{q:'smile + ing',a:'smiling',o:['smileing','smilling']}],
+  sentences:['The dog jumped and played.','She is hopping and hoping.','I baked six boxes of cakes.']},
+ // ---------- PHASE 2 : Grade 2 ----------
+ {id:'ar-or',phase:2,name:'ar and or',desc:'bossy r: ar, or',
+  rule:'When r comes after a vowel it changes the sound: ar says /ar/ like car, or says /or/ like corn.',
+  read:['car','farm','shark','park','corn','fork','storm','short'],spell:['barn','star','horn','sport','dark'],nonsense:['zarp','florm'],
+  pool:['car','farm','shark','park','corn','fork','storm','short','barn','star','horn','sport','dark','yard','card','harp','arm','cart','fort','torn','born','porch','north','march','jar','cord'],
+  sounds:[{g:'ar',kw:['car','farm','star']},{g:'or',kw:['corn','fork','horn']}],
+  sentences:['The shark is in the dark park.','I ate corn with a fork.','A storm hit the farm.']},
+ {id:'er-ir-ur',phase:2,name:'er, ir, ur',desc:'one sound, three spellings',
+  rule:'er, ir and ur all say /er/. You have to remember which one a word uses: her, bird, turn.',
+  read:['her','fern','bird','girl','turn','burn','shirt','nurse'],spell:['herd','dirt','church','first','curl'],nonsense:['skirn','plurt'],
+  pool:['her','fern','bird','girl','turn','burn','shirt','nurse','herd','dirt','church','first','curl','fur','hurt','third','stir','sir','verb','term','purse','skirt','birth','perch','surf','twirl'],
+  sounds:[{g:'er',kw:['her','fern','herd']},{g:'ir',kw:['bird','girl','dirt']},{g:'ur',kw:['turn','burn','curl']}],
+  sentences:['The girl has a bird.','Turn the shirt to the nurse.','Her first purse is in the dirt.']},
+ {id:'oi-ou',phase:2,name:'oi/oy and ou/ow',desc:'sliding vowels',
+  rule:'oy and ow go at the end (toy, cow). oi and ou go in the middle (coin, cloud).',
+  read:['coin','boil','toy','joy','cloud','shout','cow','town'],spell:['join','boy','loud','brown','point'],nonsense:['froid','plout'],
+  pool:['coin','boil','toy','joy','cloud','shout','cow','town','join','boy','loud','brown','point','soil','coil','enjoy','royal','mouth','found','round','sound','how','now','down','crown','howl','spoil'],
+  sounds:[{g:'oi',kw:['coin','boil','join']},{g:'oy',kw:['toy','joy','boy']},{g:'ou',kw:['cloud','shout','loud']},{g:'ow',kw:['cow','town','brown']}],
+  sentences:['The boy found a coin.','The brown cow is loud.','Point to the toy in town.']},
+ {id:'au-oo-ew',phase:2,name:'au/aw, oo, ew',desc:'more vowel teams',
+  rule:'au and aw say /aw/ (sauce, draw). oo has two sounds: book and moon. ew says /oo/ like chew.',
+  read:['haul','sauce','draw','lawn','book','moon','food','chew'],spell:['yawn','cook','spoon','grew','pause'],nonsense:['glaw','stoom'],
+  pool:['haul','sauce','draw','lawn','book','moon','food','chew','yawn','cook','spoon','grew','pause','fault','claw','straw','hawk','look','wood','foot','room','tooth','school','new','flew','threw','crew'],
+  sounds:[{g:'au',kw:['haul','sauce','pause']},{g:'aw',kw:['draw','lawn','yawn']},{g:'oo',kw:['moon','food','spoon']},{g:'ew',kw:['chew','grew','new']}],
+  sentences:['I saw the moon.','Cook the food with a spoon.','The hawk flew to the wood.']},
+ {id:'soft-cg',phase:2,name:'Soft c, soft g, tch, dge',desc:'ce/ci, ge/gi, -tch, -dge',
+  rule:'c before e, i or y says /s/ (city). g before e, i or y often says /j/ (gem). After a short vowel: -tch (catch) and -dge (edge).',
+  read:['city','face','gem','cage','catch','match','edge','badge'],spell:['rice','page','witch','fudge','ice'],nonsense:['plitch','fodge'],
+  pool:['city','face','gem','cage','catch','match','edge','badge','rice','page','witch','fudge','ice','circle','pencil','nice','race','giant','gentle','stage','patch','fetch','hutch','bridge','judge','ledge','dodge'],
+  sounds:[{g:'ce',kw:['face','rice','ice']},{g:'ge',kw:['gem','cage','page']},{g:'tch',kw:['catch','match','witch']},{g:'dge',kw:['edge','badge','fudge']}],
+  sentences:['The witch can catch a mouse.','I see the city from the bridge.','Put the gem in the cage.']},
+ {id:'silent-letters',phase:2,name:'Silent letters',desc:'kn, wr, mb, gn',
+  rule:'Some letters are silent: kn says /n/ (knee), wr says /r/ (write), mb says /m/ (lamb), gn says /n/ (gnat).',
+  read:['knee','knot','write','wrap','lamb','comb','thumb','gnat'],spell:['knife','wrist','climb','know','wrong'],nonsense:['knup','wremp'],
+  pool:['knee','knot','write','wrap','lamb','comb','thumb','gnat','knife','wrist','climb','know','wrong','knock','knit','kneel','wreck','wring','crumb','bomb','limb','numb','gnaw','gnome','sign','knob'],
+  sounds:[{g:'kn',kw:['knee','knot','know']},{g:'wr',kw:['write','wrap','wrist']},{g:'mb',kw:['lamb','comb','thumb']},{g:'gn',kw:['gnat','gnaw','gnome']}],
+  sentences:['I know the lamb can climb.','Write with the wrong thumb.','The gnat sat on my knee.']},
+ {id:'syllable-types',phase:2,name:'Two syllables',desc:'closed and open syllables',
+  rule:'Split long words into parts. A closed part ends in a consonant and has a short vowel (rab-bit). An open part ends in a vowel that says its name (ro-bot).',
+  read:['rabbit','robot','tiger','basket','cactus','pilot','napkin','zero'],spell:['hotel','magnet','music','sunset','bacon'],nonsense:['lapmit','bodo'],
+  pool:['rabbit','robot','tiger','basket','cactus','pilot','napkin','zero','hotel','magnet','music','sunset','bacon','kitten','muffin','puppet','open','begin','lemon','cabin','pupil','dentist','tulip','silent','picnic','human','velvet','insect','baby'],
+  sounds:[],
+  sentences:['The robot has a magnet.','The tiger sat in the cactus.','We had a picnic at sunset.']},
+ {id:'suffixes',phase:2,name:'Suffixes',desc:'-er, -est, -ly, -y, -ful, -less',
+  rule:'Add endings to change a word. Double the last letter after a short vowel (big, bigger). Drop silent e (nice, nicer). Change y to i (happy, happier).',
+  read:['faster','biggest','slowly','sunny','hopeful','helpless','happier','funniest'],spell:['taller','smallest','softly','rainy','careful'],nonsense:['gloppy','fribbest'],
+  pool:['faster','biggest','slowly','sunny','hopeful','helpless','happier','funniest','taller','smallest','softly','rainy','careful','longer','hotter','sadly','windy','useful','fearless','quickly','colder','thinner','wider','nicer','dirty','messy','joyful','sleepy'],
+  sounds:[],
+  rules:[{q:'big + est',a:'biggest',o:['bigest','biggst']},{q:'nice + er',a:'nicer',o:['niceer','nicier']},{q:'happy + er',a:'happier',o:['happyer','happer']},{q:'hope + ful',a:'hopeful',o:['hopful','hopeful l']},{q:'sun + y',a:'sunny',o:['suny','sunney']},{q:'slow + ly',a:'slowly',o:['slowley','slowy']},{q:'funny + est',a:'funniest',o:['funnyest','funiest']},{q:'hot + er',a:'hotter',o:['hoter','hottr']}],
+  sentences:['The sunny day was the best.','She ran faster than the biggest dog.','Be careful on the rainy hill.']},
+ {id:'contractions',phase:2,name:'Contractions and possessives',desc:"can't, it's, Sam's",
+  rule:"An apostrophe shows letters are missing (can not = can't) or that something belongs to someone (Sam's hat).",
+  read:["can't","don't","it's","I'm","we'll","they're","Sam's","dog's"],spell:["didn't","isn't","let's","mom's","you're"],nonsense:["blin't","zog's"],
+  pool:["can't","don't","it's","I'm","we'll","they're","Sam's","dog's","didn't","isn't","let's","mom's","you're","he's","she's","we're","I'll","won't","wasn't","dad's","cat's","that's","aren't","hasn't","I've","you'll"],
+  sounds:[],
+  rules:[{q:'can + not',a:"can't",o:["cant","ca'nt"]},{q:'it + is',a:"it's",o:["its'","i'ts"]},{q:'did + not',a:"didn't",o:["did'nt","didnt"]},{q:'let + us',a:"let's",o:["lets'","le'ts"]},{q:'they + are',a:"they're",o:["theyr'e","their"]},{q:'you + are',a:"you're",o:["your","you'r"]},{q:'the hat of Sam',a:"Sam's hat",o:["Sams hat","Sams' hat"]},{q:'we + will',a:"we'll",o:["well","we'l"]}],
+  sentences:["I can't find Sam's hat.","It's time, let's go.","They're in mom's car."]}
+];
+const FRY = ['the','of','and','a','to','in','is','you','that','it','he','was','for','on','are','as','with','his','they','I','at','be','this','have','from','or','one','had','by','word','but','not','what','all','were','we','when','your','can','said','there','use','an','each','which','she','do','how','their','if','will','up','other','about','out','many','then','them','these','so','some','her','would','make','like','him','into','time','has','look','two','more','write','go','see','number','no','way','could','people','my','than','first','water','been','call','who','oil','its','now','find','long','down','day','did','get','come','made','may','part',
+'over','new','sound','take','only','little','work','know','place','year','live','me','back','give','most','very','after','thing','our','just','name','good','sentence','man','think','say','great','where','help','through','much','before','line','right','too','mean','old','any','same','tell','boy','follow','came','want','show','also','around','form','three','small','set','put','end','does','another','well','large','must','big','even','such','because','turn','here','why','ask','went','men','read','need','land','different','home','us','move','try','kind','hand','picture','again','change','off','play','spell','air','away','animal','house','point','page','letter','mother','answer','found','study','still','learn','should','America','world','high'];
+const STORIES = [
+ {title:'The Lost Duck',text:'Sam had a duck. The duck was in a big box. One day the box was open and the duck was gone. Sam ran to the pond. He did not see the duck. He ran to the shed. He did not see the duck. Then Sam sat on the step and felt sad. Quack! The duck was under the step. Sam gave the duck a hug.'},
+ {title:'Rain Day',text:'It is a rain day. Kate and Jake stay in and play a game. Kate gets the train and the plane. Jake gets a boat and a kite. They make a road with tape. The train goes fast. The boat floats in the tub. At night the rain stops, and they see a bright moon.'},
+ {title:'The Frog and the Crab',text:'A frog sat on a log by the pond. A crab came up from the sand. The crab said, "Can you jump?" The frog said, "Yes, I can jump and swim." The crab said, "I can not jump, but I can dig." So the frog jumped and the crab dug, and they had fun all day.'},
+ {title:'The Sunny Hill',text:'We went up the sunny hill with a big ball. Dad kicked it and it rolled down fast. I ran after it and fell in the soft grass. Mom and my sister laughed and clapped. Then we had a picnic with sandwiches and milk, and we grinned all the way home.'}
+];
+/* ===================== STATE & STORAGE ===================== */
+const KEY='phonics-app-v1';
+const DEFAULT_STATE=()=>({v:1,child:'',pin:'1234',settings:{rate:0.85,voice:'',tiles:true,mic:true,heartPerDay:10,retryPerDay:5,practiceDays:3,phase2PracticeDays:4},
+  patterns:{},lessonsDone:0,reviewsDone:0,retry:{},heart:{intro:0,cards:{}},log:[],days:{},recordings:[],assign:null});
+let S=load();
+function load(){try{const s=JSON.parse(localStorage.getItem(KEY));if(s&&s.v===1)return migrate(s);}catch(e){}return DEFAULT_STATE();}
+function migrate(s){const d=DEFAULT_STATE();for(const k in d)if(!(k in s))s[k]=d[k];for(const k in d.settings)if(!(k in s.settings))s.settings[k]=d.settings[k];return s;}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){toast('Storage is full — export a backup, then clear recordings in Parent.');}}
+function pat(id){if(!S.patterns[id])S.patterns[id]={status:'pending',practiceDays:0,checks:[],readR:0,readT:0,spellR:0,spellT:0,lastPractice:''};return S.patterns[id];}
+function P(id){return PATTERNS.find(p=>p.id===id);}
+const today=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');};
+const dayIndex=(iso)=>Math.floor(new Date(iso+'T12:00:00').getTime()/864e5);
+function dayRec(d=today()){if(!S.days[d])S.days[d]={steps:{},items:0,right:0};return S.days[d];}
+function logItem(o){const d=today();const now=new Date();S.log.push(Object.assign({d,t:now.toTimeString().slice(0,5)},o));if(o.ok!==undefined&&o.counts!==false){const r=dayRec(d);r.items++;if(o.ok)r.right++;}if(S.log.length>6000)S.log=S.log.slice(-6000);}
+/* utils */
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
+const pick=(a,n)=>shuffle(a).slice(0,n);
+const norm=s=>(s||'').toLowerCase().replace(/[’‘]/g,"'").replace(/[^a-z' ]/g,'').replace(/\s+/g,' ').trim();
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('on');clearTimeout(t._x);t._x=setTimeout(()=>t.classList.remove('on'),2200);}
+function editDist(a,b){const m=a.length,n=b.length,dp=[];for(let i=0;i<=m;i++){dp[i]=[i];for(let j=1;j<=n;j++)dp[i][j]=i?0:j;}for(let i=1;i<=m;i++)for(let j=1;j<=n;j++)dp[i][j]=Math.min(dp[i-1][j]+1,dp[i][j-1]+1,dp[i-1][j-1]+(a[i-1]===b[j-1]?0:1));return dp[m][n];}
+function distractors(word,pool,n=2){const cand=pool.filter(w=>w!==word);cand.sort((a,b)=>Math.abs(a.length-word.length)-Math.abs(b.length-word.length)||(a[0]===word[0]?-1:0)-(b[0]===word[0]?-1:0)||Math.random()-.5);const first=cand.filter(w=>w[0]===word[0]);const rest=cand.filter(w=>w[0]!==word[0]);return pick(first,Math.min(n,first.length)).concat(pick(rest,n)).slice(0,n);}
+function nonsenseVariants(w){const v=['a','e','i','o','u'];const out=new Set();const idx=[...w].map((c,i)=>v.includes(c)?i:-1).filter(i=>i>=0);for(const i of idx)for(const nv of v){if(nv!==w[i]){out.add(w.slice(0,i)+nv+w.slice(i+1));}}const arr=shuffle([...out]);if(arr.length<2)arr.push(w.slice(1)+w[0]);return arr.slice(0,2);}
+/* ===================== AUDIO ===================== */
+const TTS={ok:'speechSynthesis' in window,voices:[],ready:false};
+function loadVoices(){if(!TTS.ok)return;TTS.voices=speechSynthesis.getVoices().filter(v=>/^en/i.test(v.lang));TTS.ready=TTS.voices.length>0;}
+if(TTS.ok){loadVoices();speechSynthesis.onvoiceschanged=loadVoices;}
+function pickVoice(){if(!TTS.voices.length)return null;if(S.settings.voice){const v=TTS.voices.find(v=>v.name===S.settings.voice);if(v)return v;}const pref=['Samantha','Karen','Daniel','Moira','Google US English','Microsoft Aria'];for(const n of pref){const v=TTS.voices.find(v=>v.name.includes(n));if(v)return v;}return TTS.voices.find(v=>v.lang==='en-US')||TTS.voices[0];}
+function say(text,opts={}){return new Promise(res=>{if(!TTS.ok){res();return;}speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);const v=pickVoice();if(v)u.voice=v;u.lang=(v&&v.lang)||'en-US';u.rate=opts.rate||S.settings.rate;u.pitch=1.05;u.onend=res;u.onerror=res;speechSynthesis.speak(u);setTimeout(res,Math.max(1500,text.length*120));});}
+async function sayWordSlow(word){await say(word,{rate:0.45});await new Promise(r=>setTimeout(r,250));await say(word);}
+const REC={ok:!!(window.SpeechRecognition||window.webkitSpeechRecognition)};
+function listen(){return new Promise((res)=>{const C=window.SpeechRecognition||window.webkitSpeechRecognition;if(!C){res({error:'unsupported'});return;}const r=new C();r.lang='en-US';r.interimResults=false;r.maxAlternatives=5;let done=false;const finish=v=>{if(!done){done=true;res(v);}};r.onresult=e=>{const alts=[];for(const a of e.results[0])alts.push(norm(a.transcript));finish({alts});};r.onerror=e=>finish({error:e.error});r.onend=()=>finish({alts:[]});try{r.start();}catch(e){finish({error:'start'});}setTimeout(()=>{try{r.stop();}catch(e){}},5000);});}
+function heard(target,alts){const t=norm(target);for(const a of alts){if(a===t)return true;const w=a.split(' ');if(w.includes(t))return true;if(t.length>=4&&w.some(x=>editDist(x,t)<=1))return true;}return false;}
+const MIC={stream:null};
+async function recordClip(seconds=2.5){if(!navigator.mediaDevices||!window.MediaRecorder)throw new Error('unsupported');if(!MIC.stream)MIC.stream=await navigator.mediaDevices.getUserMedia({audio:true});const mr=new MediaRecorder(MIC.stream);const chunks=[];mr.ondataavailable=e=>chunks.push(e.data);const p=new Promise(res=>{mr.onstop=()=>res(new Blob(chunks,{type:mr.mimeType||'audio/mp4'}));});mr.start();await new Promise(r=>setTimeout(r,seconds*1000));mr.stop();const blob=await p;const data=await new Promise(r=>{const fr=new FileReader();fr.onload=()=>r(fr.result);fr.readAsDataURL(blob);});return data;}
+function playData(data){const a=new Audio(data);a.play();return new Promise(r=>{a.onended=r;a.onerror=r;});}
+/* sound descriptions: spoken with keywords, never raw letters */
+function soundPrompt(s){return `Which letters spell the sound you hear in: ${s.kw.join(', ')}?`;}
+function graphemeLabel(g){return g.replace('_','_');}
+/* ===================== ROUTER ===================== */
+const $=s=>document.querySelector(s);
+const main=()=>$('#main');
+function setTitle(t,s=''){$('#title').textContent=t;$('#subtitle').textContent=s;}
+$('#homeBtn').onclick=()=>{speechSynthesis&&speechSynthesis.cancel();home();};
+$('#parentBtn').onclick=()=>parentGate();
+/* ===================== TODAY'S PLAN ===================== */
+function statusOf(id){return pat(id).status;}
+function mainStep(force){
+  if(S.assign&&P(S.assign.pat)){const p=P(S.assign.pat);return {id:'main',kind:S.assign.kind,pat:p.id,title:(S.assign.kind==='checkup'?'Check-up: ':'Practice: ')+p.name,sub:'Chosen by parent',assigned:true};}
+  const p1=PATTERNS.filter(p=>p.phase===1);
+  for(const p of p1){if(statusOf(p.id)==='pending')return {id:'main',kind:'checkup',pat:p.id,title:'Check-up: '+p.name,sub:p.desc+' — read, spell, nonsense'};}
+  const nw=PATTERNS.filter(p=>statusOf(p.id)==='needs-work');
+  if(nw.length){const p=nw[0],st=pat(p.id);const due=st.practiceDays>=(p.phase===1?S.settings.practiceDays:S.settings.phase2PracticeDays)&&st.lastPractice!==today();return due?{id:'main',kind:'checkup',pat:p.id,title:'Check-up again: '+p.name,sub:'Show what you learned'}:{id:'main',kind:'practice',pat:p.id,title:'Practice: '+p.name,sub:p.desc+' — day '+(st.practiceDays+1)};}
+  if(S.lessonsDone>0&&S.lessonsDone%5===0&&S.reviewsDone<Math.floor(S.lessonsDone/5)&&PATTERNS.some(p=>['passed','mastered'].includes(statusOf(p.id))))return {id:'main',kind:'review',title:'Big review',sub:'Mix of everything you know'};
+  for(const p of PATTERNS.filter(p=>p.phase===2)){const st=pat(p.id);if(st.status==='pending'){const due=st.practiceDays>=S.settings.phase2PracticeDays&&st.lastPractice!==today();return due?{id:'main',kind:'checkup',pat:p.id,title:'Check-up: '+p.name,sub:'Show what you learned'}:{id:'main',kind:'practice',pat:p.id,title:'Learn: '+p.name,sub:p.desc+' — day '+(st.practiceDays+1)};}}
+  return null;
+}
+function buildPlan(){const steps=[];const rq=Object.keys(S.retry).length;if(rq)steps.push({id:'retry',kind:'retry',title:'Fix-up words',sub:Math.min(rq,S.settings.retryPerDay)+' words to try again'});const m=mainStep();if(m)steps.push(m);steps.push({id:'heart',kind:'heart',title:'Heart words',sub:heartSub()});steps.push({id:'story',kind:'story',title:'Story time',sub:'Read out loud, tap a word to hear it',optional:true});return steps;}
+function heartSub(){const c=S.heart.cards;const n=Object.keys(c).length;const m=Object.values(c).filter(x=>x.box>=4).length;return n?m+' of '+n+' known by heart':'Start with the first 5 words';}
+function home(){
+  setTitle(S.child?('Hi, '+S.child+'!'):'Phonics',today());
+  const d=dayRec();const steps=buildPlan();const done=steps.filter(s=>!s.optional).every(s=>d.steps[s.id]);
+  main().innerHTML=`<div class="card"><h2 style="margin-top:0">Today</h2><ul class="plan">${steps.map(s=>`<li data-id="${s.id}"><div class="dot ${d.steps[s.id]?'done':''}">${d.steps[s.id]?'✓':(s.optional?'☆':'●')}</div><div class="grow"><div class="t">${esc(s.title)}</div><div class="s">${esc(s.sub)}</div></div><button class="small ${d.steps[s.id]?'':'primary'}">${d.steps[s.id]?'Again':'Start'}</button></li>`).join('')}</ul></div>
+  ${done?`<div class="card" style="text-align:center"><div class="stars">⭐⭐⭐</div><h2>All done for today!</h2><p class="muted">${d.right} of ${d.items} right today.</p></div>`:''}
+  <div class="row spread" style="margin-top:6px"><span class="muted">Today: ${d.right}/${d.items} right</span><button class="small ghost" id="freeBtn">Choose a pattern</button></div>`;
+  main().querySelectorAll('.plan li').forEach(li=>{li.querySelector('button').onclick=()=>startStep(steps.find(s=>s.id===li.dataset.id));});
+  $('#freeBtn').onclick=chooser;
+}
+function chooser(){setTitle('Choose','Free practice');main().innerHTML=`<div class="card">${PATTERNS.map(p=>`<div class="row spread" style="padding:8px 0;border-bottom:1px solid var(--line)"><div><b>${esc(p.name)}</b> <span class="pill ${statusOf(p.id)}">${statusOf(p.id).replace('-',' ')}</span><div class="muted">${esc(p.desc)}</div></div><div class="row"><button class="small" data-k="practice" data-p="${p.id}">Practice</button><button class="small" data-k="checkup" data-p="${p.id}">Check-up</button></div></div>`).join('')}</div>`;main().querySelectorAll('button[data-k]').forEach(b=>b.onclick=()=>startStep({id:'free',kind:b.dataset.k,pat:b.dataset.p,title:(b.dataset.k==='checkup'?'Check-up: ':'Practice: ')+P(b.dataset.p).name}));}
+function startStep(s){if(!s)return;if(s.kind==='checkup')runCheckup(s);else if(s.kind==='practice')runPractice(s);else if(s.kind==='review')runReview(s);else if(s.kind==='retry')runRetry(s);else if(s.kind==='heart')runHeart(s);else if(s.kind==='story')runStory(s);}
+function markStep(id){if(id&&id!=='free'){dayRec().steps[id]=true;}save();}
+/* ===================== ACTIVITY BUILDERS ===================== */
+function pickWordItem(word,pool,mode,patId,extraOpts){const opts=extraOpts||distractors(word,pool,2);return {kind:'pickword',word,options:shuffle([word,...opts]),mode,pat:patId};}
+function nonsenseItem(w,patId){return {kind:'pickword',word:w,options:shuffle([w,...nonsenseVariants(w)]),mode:'nonsense',pat:patId,nonsense:true};}
+function soundItem(p,s){const all=[];PATTERNS.forEach(q=>q.sounds.forEach(x=>all.push(x.g)));const own=p.sounds.map(x=>x.g).filter(g=>g!==s.g);const others=shuffle(all.filter(g=>g!==s.g&&!own.includes(g)));const opts=pick(own,Math.min(3,own.length));while(opts.length<3&&others.length)opts.push(others.shift());return {kind:'sound',s,options:shuffle([s.g,...opts]),pat:p.id};}
+function ruleItem(p,r){return {kind:'rule',q:r.q,a:r.a,options:shuffle([r.a,...r.o]),pat:p.id};}
+function otherWords(p,n){const others=PATTERNS.filter(q=>q.id!==p.id&&['passed','mastered'].includes(statusOf(q.id)));const pool=[].concat(...others.map(q=>q.pool));return pick(pool,n).map(w=>({w,pat:(others.find(q=>q.pool.includes(w))||{}).id}));}
+function runCheckup(step){const p=P(step.pat);const items=[];p.read.forEach(w=>items.push(pickWordItem(w,p.pool,'read',p.id)));p.spell.forEach(w=>items.push({kind:'spell',word:w,mode:'spell',pat:p.id,retry:false}));p.nonsense.forEach(w=>items.push(nonsenseItem(w,p.id)));if(p.rules)pick(p.rules,2).forEach(r=>items.push(ruleItem(p,r)));
+  runActivity({act:'checkup',title:'Check-up',sub:p.name,items,onDone:res=>{const sc=k=>{const a=res.filter(r=>r.mode===k);return [a.filter(r=>r.ok).length,a.length];};const [rr,rt]=sc('read'),[sr,st]=sc('spell'),[nr,nt]=sc('nonsense');const pass=rr>=Math.ceil(rt*7/8)&&sr>=Math.ceil(st*4/5)&&nr===nt;const s=pat(p.id);s.checks.push({d:today(),read:rr+'/'+rt,spell:sr+'/'+st,nonsense:nr+'/'+nt,pass});if(pass){s.status=s.status==='mastered'?'mastered':'passed';}else{s.status='needs-work';s.practiceDays=0;}if(S.assign&&S.assign.pat===p.id)S.assign=null;markStep(step.id);return pass?'Check-up passed! '+p.name+' is looking good.':'Not yet — we will practice '+p.name+' for a few days.';}});}
+function runPractice(step){const p=P(step.pat);const items=[];const useMic=S.settings.mic&&REC.ok;const canRec=S.settings.mic&&!!window.MediaRecorder;
+  if(p.sounds.length)pick(p.sounds,Math.min(4,p.sounds.length)).forEach(s=>items.push(soundItem(p,s)));
+  if(p.rules)pick(p.rules,p.sounds.length?2:4).forEach(r=>items.push(ruleItem(p,r)));
+  if(p.pairs)pick(p.pairs,2).forEach(pr=>{const w=pr[Math.random()<.5?0:1];items.push({kind:'pickword',word:w,options:shuffle(pr),mode:'read',pat:p.id,pair:true});});
+  const words=pick(p.pool,6);const mix=otherWords(p,2);
+  words.forEach(w=>items.push(useMic?{kind:'readaloud',word:w,pat:p.id}:pickWordItem(w,p.pool,'read',p.id)));
+  mix.forEach(o=>items.push(pickWordItem(o.w,P(o.pat).pool,'read',o.pat)));
+  if(canRec&&p.sounds.length)pick(p.sounds,2).forEach(s=>items.push({kind:'record',s,pat:p.id}));
+  pick(p.pool.filter(w=>!words.includes(w)),5).forEach(w=>items.push({kind:'spell',word:w,mode:'spell',pat:p.id,retry:true}));
+  items.push({kind:'sentence',text:pick(p.sentences,1)[0],pat:p.id});
+  runActivity({act:'practice',title:'Practice',sub:p.name,rule:p.rule,items:shuffleKeepEnd(items),onDone:res=>{const s=pat(p.id);if(s.lastPractice!==today()){s.practiceDays++;s.lastPractice=today();S.lessonsDone++;}markStep(step.id);return 'Nice work on '+p.name+'!';}});}
+function shuffleKeepEnd(items){const last=items[items.length-1];return shuffle(items.slice(0,-1)).concat([last]);}
+function runReview(step){const ps=PATTERNS.filter(p=>['passed','mastered'].includes(statusOf(p.id)));const items=[];ps.forEach(p=>{pick(p.pool,2).forEach(w=>items.push({kind:'spell',word:w,mode:'spell',pat:p.id,retry:false}));items.push(pickWordItem(pick(p.pool,1)[0],p.pool,'read',p.id));});pick(ps,Math.min(3,ps.length)).forEach(p=>items.push(nonsenseItem(pick(p.nonsense,1)[0],p.id)));const sp=pick(ps,1)[0];if(sp)items.push({kind:'sentence',text:pick(sp.sentences,1)[0],pat:sp.id});
+  runActivity({act:'review',title:'Big review',sub:'Everything so far',items:shuffleKeepEnd(items),onDone:res=>{let msg=[];ps.forEach(p=>{const a=res.filter(r=>r.pat===p.id&&r.mode==='spell');if(!a.length)return;const pct=a.filter(r=>r.ok).length/a.length;const s=pat(p.id);if(pct>=0.8){if(s.status!=='mastered'){s.status='mastered';msg.push(p.name+' mastered');}}else if(pct<0.6){s.status='needs-work';s.practiceDays=0;msg.push(p.name+' needs more work');}});S.reviewsDone++;markStep(step.id);return msg.length?msg.join('. ')+'.':'Review done — keep it up!';}});}
+function runRetry(step){const list=Object.values(S.retry).sort((a,b)=>(a.due||0)-(b.due||0)).slice(0,S.settings.retryPerDay);const items=list.map(r=>{const p=P(r.pat);if(r.mode==='spell')return {kind:'spell',word:r.word,mode:'spell',pat:r.pat,retry:true};return p?pickWordItem(r.word,p.pool,r.mode,r.pat):{kind:'spell',word:r.word,mode:'spell',pat:r.pat,retry:true};});
+  runActivity({act:'retry',title:'Fix-up words',sub:'Words to get right',items,onDone:res=>{markStep(step.id);return 'Fix-up done!';}});}
+/* retry queue maintenance: called by runner for read/spell/nonsense results */
+function updateRetry(r){if(!['read','spell','nonsense'].includes(r.mode)||r.nonsense)return;const k=r.mode+':'+r.item;if(!r.ok){S.retry[k]={word:r.item,mode:r.mode,pat:r.pat,streak:0,due:dayIndex(today())+1};}else if(S.retry[k]){S.retry[k].streak++;S.retry[k].due=dayIndex(today())+1;if(S.retry[k].streak>=3)delete S.retry[k];}}
+/* ===================== RUNNER ===================== */
+function runActivity(cfg){const results=[];let i=0;
+  const frame=(inner)=>{setTitle(cfg.title,cfg.sub||'');main().innerHTML=`<div class="progress"><i style="width:${(i/cfg.items.length)*100}%"></i></div><div class="card" id="itemCard">${inner}</div>`;};
+  const next=()=>{if(i>=cfg.items.length){finish();return;}const it=cfg.items[i];RENDER[it.kind](it,frame,(ok,ans,extra)=>{const r=Object.assign({act:cfg.act,pat:it.pat||'',mode:it.mode||it.kind,item:it.word||(it.s&&it.s.g)||it.q||it.text||'',ans:ans==null?'':ans,ok,nonsense:!!it.nonsense},extra||{});if(ok!==null){results.push(r);logItem({act:r.act,pat:r.pat,mode:r.mode,item:r.item,ans:r.ans,ok:r.ok,rec:r.rec,counts:r.counts});updateRetry(r);const s=it.pat?pat(it.pat):null;if(s&&r.counts!==false){if(r.mode==='read'||r.mode==='nonsense'){s.readT++;if(ok)s.readR++;}if(r.mode==='spell'){s.spellT++;if(ok)s.spellR++;}}}else{logItem({act:cfg.act,pat:it.pat||'',mode:r.mode,item:r.item,ans:r.ans,rec:r.rec,counts:false});}save();i++;next();});};
+  const finish=()=>{const msg=cfg.onDone(results)||'';save();const scored=results.filter(r=>r.counts!==false&&r.ok!==null);const right=scored.filter(r=>r.ok).length;const pct=scored.length?right/scored.length:1;const stars=pct>=0.9?'⭐⭐⭐':pct>=0.7?'⭐⭐':'⭐';
+    setTitle('Finished!',cfg.sub||'');main().innerHTML=`<div class="card" style="text-align:center"><div class="stars">${stars}</div><h2>${right} of ${scored.length} right</h2><p>${esc(msg)}</p>${cfg.rule?`<div class="help" style="text-align:left"><b>Remember:</b> ${esc(cfg.rule)}</div>`:''}</div><div class="card"><h3 style="margin-top:0">What you did</h3><table><tbody>${results.filter(r=>r.counts!==false).map(r=>`<tr><td>${esc(r.item)}</td><td class="muted">${esc(r.mode)}</td><td>${r.ok===null?'—':r.ok?'<span class="ok">✓</span>':'<span class="no">✗ '+esc(r.ans)+'</span>'}</td></tr>`).join('')}</tbody></table></div><div class="row"><button class="primary big grow" id="doneBtn">Back home</button></div>`;$('#doneBtn').onclick=home;};
+  next();}
+const RENDER={};
+function feedback(ok,text){const f=$('#fb');if(!f)return;f.className='feedback '+(ok?'ok':'no');f.textContent=text||(ok?pick(['Yes!','Great!','You got it!','Super!'],1)[0]:'Not quite');}
+function afterDelay(fn,ms=1100){setTimeout(fn,ms);}
+/* hear a word, tap the matching word */
+RENDER.pickword=(it,frame,done)=>{frame(`<div class="prompt">${it.pair?'Listen. Which word did you hear?':it.nonsense?'Silly word! Tap the one you hear.':'Tap the word you hear.'}</div><div style="text-align:center"><button class="icon" id="hear">🔊</button></div><div class="choices ${it.options.length===2?'':''}" id="ch">${it.options.map(o=>`<button data-w="${esc(o)}">${esc(o)}</button>`).join('')}</div><div class="feedback" id="fb"></div>`);
+  const hear=()=>say(it.word);$('#hear').onclick=hear;afterDelay(hear,300);let locked=false;
+  main().querySelectorAll('#ch button').forEach(b=>b.onclick=()=>{if(locked)return;locked=true;const ok=b.dataset.w===it.word;b.classList.add(ok?'good':'bad');if(!ok){main().querySelectorAll('#ch button').forEach(x=>{if(x.dataset.w===it.word)x.classList.add('good');});}feedback(ok);afterDelay(()=>done(ok,b.dataset.w),ok?900:1800);});};
+/* hear a word, build it with tiles (or type) */
+RENDER.spell=(it,frame,done)=>{const word=it.word;const letters=[...word];const extra=pick('abcdefghijklmnopqrstuvwy'.split('').filter(c=>!letters.includes(c)),3);const tray=shuffle(letters.concat(extra));let tries=0;
+  const draw=()=>{frame(`<div class="prompt">Spell the word you hear.</div><div style="text-align:center"><button class="icon" id="hear">🔊</button> <button class="icon" id="slow" title="slow">🐢</button></div>
+   ${S.settings.tiles?`<div class="answer" id="ans"></div><div class="tray" id="tray">${tray.map((c,k)=>`<div class="tile" data-k="${k}" data-c="${esc(c)}">${esc(c)}</div>`).join('')}</div><div class="row" style="justify-content:center"><button class="small" id="undo">Undo</button><button class="primary" id="check">Check</button></div>`
+   :`<input type="text" class="sentence" id="inp" autocapitalize="off" autocorrect="off" spellcheck="false" autocomplete="off"><div class="row" style="justify-content:center;margin-top:10px"><button class="primary" id="check">Check</button></div>`}
+   <div class="feedback" id="fb"></div>`);
+   $('#hear').onclick=()=>say(word);$('#slow').onclick=()=>sayWordSlow(word);afterDelay(()=>say(word),300);
+   let built=[];
+   if(S.settings.tiles){const ans=$('#ans');const render=()=>{ans.innerHTML=built.map(k=>`<div class="tile" data-k="${k}">${esc(tray[k])}</div>`).join('');main().querySelectorAll('#tray .tile').forEach(t=>t.classList.toggle('picked',built.includes(+t.dataset.k)));};main().querySelectorAll('#tray .tile').forEach(t=>t.onclick=()=>{if(built.length<word.length+2){built.push(+t.dataset.k);render();}});$('#undo').onclick=()=>{built.pop();render();};render();}
+   else{setTimeout(()=>{const e=$('#inp');if(e)e.focus();},400);$('#inp').onkeydown=e=>{if(e.key==='Enter')$('#check').click();};}
+   $('#check').onclick=()=>{const typed=S.settings.tiles?built.map(k=>tray[k]).join(''):norm($('#inp').value);if(!typed)return;tries++;const ok=typed===word;if(ok){feedback(true);afterDelay(()=>done(true,typed,{tries}),900);}
+     else if(it.retry&&tries===1){feedback(false,'Try once more');say(word);if(S.settings.tiles){built=[];main().querySelectorAll('#ans').forEach(a=>a.innerHTML='');main().querySelectorAll('#tray .tile').forEach(t=>t.classList.remove('picked'));}else{$('#inp').value='';$('#inp').focus();}}
+     else{feedback(false,'It is spelled: '+word);const card=$('#itemCard');card.insertAdjacentHTML('beforeend',`<div class="word-big">${highlight(word,it.pat)}</div>`);say(word);afterDelay(()=>done(false,typed,{tries}),2600);}};};
+  draw();};
+function highlight(word,patId){const p=P(patId);if(!p)return esc(word);const gs=p.sounds.map(s=>s.g.replace('_','.')).sort((a,b)=>b.length-a.length);for(const g of gs){const m=new RegExp(g,'i').exec(word);if(m)return esc(word.slice(0,m.index))+'<span class="hl">'+esc(m[0])+'</span>'+esc(word.slice(m.index+m[0].length));}return esc(word);}
+/* hear keywords, pick the grapheme */
+RENDER.sound=(it,frame,done)=>{frame(`<div class="prompt">Which letters make the sound you hear?</div><p class="muted" style="text-align:center">${it.s.kw.map(esc).join(' · ')}</p><div style="text-align:center"><button class="icon" id="hear">🔊</button></div><div class="tray" id="ch">${it.options.map(o=>`<div class="tile big" data-g="${esc(o)}">${esc(o)}</div>`).join('')}</div><div class="feedback" id="fb"></div>`);
+  const hear=()=>say(soundPrompt(it.s));$('#hear').onclick=hear;afterDelay(hear,300);let locked=false;
+  main().querySelectorAll('#ch .tile').forEach(t=>t.onclick=()=>{if(locked)return;locked=true;const ok=t.dataset.g===it.s.g;t.classList.add(ok?'good':'bad');if(!ok)main().querySelectorAll('#ch .tile').forEach(x=>{if(x.dataset.g===it.s.g)x.classList.add('good');});feedback(ok);afterDelay(()=>done(ok,t.dataset.g),ok?900:1800);});};
+/* rule: hop + ing = ? */
+RENDER.rule=(it,frame,done)=>{frame(`<div class="prompt">Put it together</div><div class="word-big">${esc(it.q)}</div><div class="choices" id="ch">${it.options.map(o=>`<button data-w="${esc(o)}">${esc(o)}</button>`).join('')}</div><div class="feedback" id="fb"></div>`);let locked=false;
+  main().querySelectorAll('#ch button').forEach(b=>b.onclick=()=>{if(locked)return;locked=true;const ok=b.dataset.w===it.a;b.classList.add(ok?'good':'bad');if(!ok)main().querySelectorAll('#ch button').forEach(x=>{if(x.dataset.w===it.a)x.classList.add('good');});feedback(ok);say(it.a);afterDelay(()=>done(ok,b.dataset.w),ok?1000:2000);});};
+/* read aloud with mic (coach, not judge) */
+RENDER.readaloud=(it,frame,done)=>{let tries=0;frame(`<div class="prompt">Read this word out loud</div><div class="word-big">${esc(it.word)}</div><button class="mic" id="mic">🎤</button><div class="feedback" id="fb"></div><div class="row" style="justify-content:center"><button class="small" id="hear">Hear it</button><button class="small" id="skip">Next</button></div>`);
+  $('#hear').onclick=()=>say(it.word);$('#skip').onclick=()=>done(null,'skipped',{counts:false,mode:'readaloud'});
+  $('#mic').onclick=async()=>{const m=$('#mic');m.classList.add('rec');m.textContent='…';feedback(true,'Listening…');const r=await listen();m.classList.remove('rec');m.textContent='🎤';tries++;
+    if(r.error){feedback(false,'Mic not available — tap Hear it, then Next');return;}
+    if(heard(it.word,r.alts)){feedback(true,'I heard '+it.word+'!');afterDelay(()=>done(true,r.alts[0]||'',{counts:false,mode:'readaloud'}),900);}
+    else{const h=r.alts[0]||'nothing';if(tries<2){feedback(false,'I heard "'+h+'". Try again');say(it.word);}else{feedback(false,'I heard "'+h+'". The word is '+it.word);say(it.word);afterDelay(()=>done(false,h,{counts:false,mode:'readaloud'}),1800);}}};};
+/* record a sound, compare with the model, saved for parent */
+RENDER.record=(it,frame,done)=>{let data=null;frame(`<div class="prompt">Say this sound</div><div class="word-big"><span class="hl">${esc(it.s.g)}</span></div><p class="muted" style="text-align:center">as in ${it.s.kw.map(esc).join(', ')}</p><button class="mic" id="mic">⏺</button><div class="feedback" id="fb"></div><div class="row" style="justify-content:center"><button class="small" id="model">Hear the words</button><button class="small hidden" id="play">Play mine</button><button class="primary hidden" id="ok">Next</button><button class="small" id="skip">Skip</button></div>`);
+  $('#model').onclick=()=>say(it.s.kw.join('. '));$('#skip').onclick=()=>done(null,'skipped',{counts:false,mode:'sound-record'});
+  $('#mic').onclick=async()=>{const m=$('#mic');m.classList.add('rec');feedback(true,'Recording… say it now');try{data=await recordClip(2.5);}catch(e){m.classList.remove('rec');feedback(false,'Mic not available');return;}m.classList.remove('rec');feedback(true,'Got it! Listen to yours, then the words.');$('#play').classList.remove('hidden');$('#ok').classList.remove('hidden');await playData(data);await say(it.s.kw.join('. '));};
+  $('#play').onclick=()=>data&&playData(data);
+  $('#ok').onclick=()=>{let id=null;if(data){id='r'+Date.now();S.recordings.push({id,d:today(),pat:it.pat,g:it.s.g,kw:it.s.kw,data,mark:null});if(S.recordings.length>60)S.recordings=S.recordings.slice(-60);}done(null,'recorded',{counts:false,mode:'sound-record',rec:id});};};
+/* sentence dictation */
+RENDER.sentence=(it,frame,done)=>{frame(`<div class="prompt">Write the sentence you hear.</div><div style="text-align:center"><button class="icon" id="hear">🔊</button></div><input type="text" class="sentence" id="inp" autocapitalize="sentences" autocorrect="off" spellcheck="false" autocomplete="off"><div class="row" style="justify-content:center;margin-top:10px"><button class="primary" id="check">Check</button></div><div class="feedback" id="fb"></div><div id="res"></div>`);
+  $('#hear').onclick=()=>say(it.text);afterDelay(()=>say(it.text),300);setTimeout(()=>{const e=$('#inp');if(e)e.focus();},500);$('#inp').onkeydown=e=>{if(e.key==='Enter')$('#check').click();};
+  $('#check').onclick=()=>{const typed=$('#inp').value.trim();if(!typed)return;const tw=norm(it.text).split(' '),uw=norm(typed).split(' ');const wordsOk=tw.length===uw.length&&tw.every((w,k)=>w===uw[k]);const cap=/^[A-Z]/.test(typed),punct=/[.!?]$/.test(typed);
+    $('#res').innerHTML=`<div class="story" style="font-size:24px;text-align:center">${tw.map((w,k)=>`<span style="color:${uw[k]===w?'var(--right)':'var(--wrong)'}">${esc(it.text.split(' ')[k]||w)}</span>`).join(' ')}</div><p class="muted" style="text-align:center">${cap?'✓':'✗'} capital letter &nbsp; ${punct?'✓':'✗'} end mark</p>`;
+    feedback(wordsOk,wordsOk?(cap&&punct?'Perfect!':'Words right!'):'Look at the red words');afterDelay(()=>done(wordsOk,typed,{cap,punct}),wordsOk?1500:3200);};};
+/* ===================== HEART WORDS ===================== */
+const BOX_DAYS=[1,2,4,7,14];
+function heartIntroduce(n){const c=S.heart.cards;let added=0;while(added<n&&S.heart.intro<FRY.length){const w=FRY[S.heart.intro++];if(!c[w]){c[w]={box:1,due:dayIndex(today()),seen:0,right:0};added++;}}return added;}
+function heartSession(){const c=S.heart.cards;const t=dayIndex(today());const all=Object.keys(c);if(!all.length)heartIntroduce(5);let due=Object.keys(c).filter(w=>c[w].due<=t).sort((a,b)=>c[a].box-c[b].box);const known=Object.values(c).filter(x=>x.box>=3).length;if(due.length<S.settings.heartPerDay&&Object.keys(c).length&&known/Object.keys(c).length>=0.9){heartIntroduce(5);due=Object.keys(c).filter(w=>c[w].due<=t).sort((a,b)=>c[a].box-c[b].box);}
+  const words=due.slice(0,S.settings.heartPerDay);return words.map(w=>({kind:'heart',word:w,mode:(c[w].box<=2||Math.random()<0.3)?'flash':'heartspell',pat:''}));}
+function heartResult(w,ok){const c=S.heart.cards[w];if(!c)return;c.seen++;if(ok){c.right++;c.box=Math.min(5,c.box+1);c.due=dayIndex(today())+BOX_DAYS[c.box-1];}else{c.box=1;c.due=dayIndex(today())+1;}}
+function runHeart(step){const items=heartSession();if(!items.length){toast('No heart words due today');markStep(step.id);home();return;}
+  runActivity({act:'heart',title:'Heart words',sub:'Know these by heart',items,onDone:res=>{res.forEach(r=>heartResult(r.item,r.ok));markStep(step.id);return heartSub();}});}
+RENDER.heart=(it,frame,done)=>{if(it.mode==='heartspell'){const it2=Object.assign({},it,{kind:'spell',retry:false,pat:''});RENDER.spell(it2,frame,(ok,ans)=>done(ok,ans,{mode:'heartspell'}));return;}
+  frame(`<div class="prompt">Read it fast — do you know it?</div><div class="word-big" id="w">${esc(it.word)}</div><div class="choices"><button class="right" id="yes">I know it</button><button id="no">Show me</button></div><div class="feedback" id="fb"></div>`);
+  $('#yes').onclick=async()=>{feedback(true);await say(it.word);done(true,'knew it',{mode:'flash'});};
+  $('#no').onclick=async()=>{feedback(false,'It says: '+it.word);await say(it.word);await say('Say it: '+it.word,{rate:0.8});afterDelay(()=>done(false,'shown',{mode:'flash'}),600);};};
+/* ===================== STORY ===================== */
+function runStory(step){const st=STORIES[dayIndex(today())%STORIES.length];let t0=null,timer=null;setTitle('Story time',st.title);
+  const words=st.text.split(' ');main().innerHTML=`<div class="card"><h2 style="margin-top:0">${esc(st.title)}</h2><div class="story">${words.map(w=>`<span>${esc(w)}</span>`).join(' ')}</div></div><div class="card row spread"><div><div class="muted">Time</div><div class="stat" id="clock">0:00</div></div><button class="primary big" id="go">Start reading</button></div><p class="help">Tap any word to hear it. Tap Start, read the whole story out loud, then tap Done.</p>`;
+  main().querySelectorAll('.story span').forEach(s=>s.onclick=()=>say(s.textContent.replace(/[^a-zA-Z']/g,'')));
+  $('#go').onclick=()=>{if(!t0){t0=Date.now();$('#go').textContent='Done';timer=setInterval(()=>{const s=Math.floor((Date.now()-t0)/1000);$('#clock').textContent=Math.floor(s/60)+':'+String(s%60).padStart(2,'0');},500);}
+    else{clearInterval(timer);const secs=(Date.now()-t0)/1000;const wpm=Math.round(words.length/secs*60);logItem({act:'story',pat:'',mode:'fluency',item:st.title,ans:wpm+' wpm',counts:false});markStep(step.id);toast('Read at about '+wpm+' words a minute');$('#go').disabled=true;setTimeout(home,1800);}};}
+/* ===================== PARENT ===================== */
+function parentGate(){setTitle('Parent','Enter PIN');main().innerHTML=`<div class="card"><p class="muted">Default PIN is 1234 — change it in Settings.</p><input type="password" inputmode="numeric" id="pin" placeholder="PIN"><div class="row" style="margin-top:12px"><button class="primary" id="ok">Open</button></div></div>`;$('#pin').focus();const go=()=>{if($('#pin').value===S.pin)dashboard('cal');else toast('Wrong PIN');};$('#ok').onclick=go;$('#pin').onkeydown=e=>{if(e.key==='Enter')go();};}
+let DASH={tab:'cal',month:null,day:today()};
+function dashboard(tab){if(tab)DASH.tab=tab;setTitle('Parent dashboard',S.child||'');const tabs=[['cal','Calendar'],['day','Day log'],['pat','Patterns'],['heart','Heart words'],['rec','Recordings'],['assign','Assign'],['set','Settings']];
+  main().innerHTML=`<div class="tabs">${tabs.map(t=>`<button data-t="${t[0]}" class="${DASH.tab===t[0]?'on':''}">${t[1]}</button>`).join('')}</div><div id="tab"></div>`;main().querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>dashboard(b.dataset.t));({cal:tabCal,day:tabDay,pat:tabPat,heart:tabHeart,rec:tabRec,assign:tabAssign,set:tabSet})[DASH.tab]();}
+function dayColor(d){const r=S.days[d];const first=Object.keys(S.days).sort()[0];if(r&&r.items>0)return r.right/r.items>=0.9?'g':'o';if(r&&Object.keys(r.steps).length)return 'o';if(first&&d>=first&&d<today())return 'r';return '';}
+function tabCal(){const now=DASH.month||new Date();DASH.month=now;const y=now.getFullYear(),m=now.getMonth();const firstDow=new Date(y,m,1).getDay(),days=new Date(y,m+1,0).getDate();const cells=[];for(let i=0;i<firstDow;i++)cells.push('<div></div>');for(let d=1;d<=days;d++){const iso=y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');cells.push(`<div class="d ${dayColor(iso)} ${iso===today()?'today':''} ${iso===DASH.day?'sel':''}" data-d="${iso}">${d}</div>`);}
+  const stats=Object.values(S.days);const active=stats.filter(r=>r.items>0).length;const tot=stats.reduce((a,r)=>a+r.items,0),rt=stats.reduce((a,r)=>a+r.right,0);
+  $('#tab').innerHTML=`<div class="card"><div class="row spread"><button class="small" id="pm">‹</button><b>${now.toLocaleString('en-US',{month:'long',year:'numeric'})}</b><button class="small" id="nm">›</button></div><div class="cal">${['S','M','T','W','T','F','S'].map(h=>`<div class="h">${h}</div>`).join('')}${cells.join('')}</div><p class="muted">Green: 90%+ right · Orange: some wrong · Red: nothing done · Tap a day to see its log.</p></div><div class="card row spread"><div><div class="muted">Active days</div><div class="stat">${active}</div></div><div><div class="muted">Items answered</div><div class="stat">${tot}</div></div><div><div class="muted">Right overall</div><div class="stat">${tot?Math.round(rt/tot*100):0}%</div></div></div>`;
+  $('#pm').onclick=()=>{DASH.month=new Date(y,m-1,1);tabCal();};$('#nm').onclick=()=>{DASH.month=new Date(y,m+1,1);tabCal();};$('#tab').querySelectorAll('.d[data-d]').forEach(c=>c.onclick=()=>{DASH.day=c.dataset.d;dashboard('day');});}
+function tabDay(){const rows=S.log.filter(l=>l.d===DASH.day);const r=S.days[DASH.day];const acts={};rows.forEach(l=>{acts[l.act]=acts[l.act]||[];acts[l.act].push(l);});
+  $('#tab').innerHTML=`<div class="card"><div class="row spread"><button class="small" id="pd">‹ day</button><b>${DASH.day}</b><button class="small" id="nd">day ›</button></div>${r?`<p class="muted">${r.right} of ${r.items} right · steps done: ${Object.keys(r.steps).join(', ')||'none'}</p>`:'<p class="muted">Nothing recorded this day.</p>'}
+  ${Object.keys(acts).map(a=>`<h3>${esc(a)}</h3><table><thead><tr><th>Time</th><th>Item</th><th>Type</th><th>Answer</th><th>Result</th></tr></thead><tbody>${acts[a].map(l=>`<tr><td class="muted">${l.t}</td><td><b>${esc(l.item)}</b>${l.pat?`<div class="muted">${esc((P(l.pat)||{}).name||l.pat)}</div>`:''}</td><td class="muted">${esc(l.mode)}</td><td>${esc(l.ans||'')}</td><td>${l.ok===true?'<span class="ok">✓</span>':l.ok===false?'<span class="no">✗</span>':(l.rec?'🎙':'—')}</td></tr>`).join('')}</tbody></table>`).join('')}</div>`;
+  const shift=n=>{const d=new Date(DASH.day+'T12:00:00');d.setDate(d.getDate()+n);DASH.day=d.toISOString().slice(0,10);tabDay();};$('#pd').onclick=()=>shift(-1);$('#nd').onclick=()=>shift(1);}
+function tabPat(){$('#tab').innerHTML=`<div class="card"><p class="muted">Read % counts listen-and-tap items; spell % counts dictation. A pattern is <b>mastered</b> only after it is spelled correctly in a later Big review.</p><table><thead><tr><th>Pattern</th><th>Status</th><th>Read</th><th>Spell</th><th>Check-ups</th><th></th></tr></thead><tbody>${PATTERNS.map(p=>{const s=pat(p.id);return `<tr><td><b>${esc(p.name)}</b><div class="muted">Phase ${p.phase} · ${esc(p.desc)}</div></td><td><span class="pill ${s.status}">${s.status.replace('-',' ')}</span><div class="muted">practice days: ${s.practiceDays}</div></td><td>${s.readT?Math.round(s.readR/s.readT*100)+'%':'—'}<div class="muted">${s.readR}/${s.readT}</div></td><td>${s.spellT?Math.round(s.spellR/s.spellT*100)+'%':'—'}<div class="muted">${s.spellR}/${s.spellT}</div></td><td class="muted">${s.checks.map(c=>`${c.d}: r ${c.read}, s ${c.spell}, n ${c.nonsense} ${c.pass?'✓':'✗'}`).join('<br>')||'—'}</td><td><select data-p="${p.id}"><option value="">set…</option><option value="pending">pending</option><option value="needs-work">needs work</option><option value="passed">passed</option><option value="mastered">mastered</option></select></td></tr>`;}).join('')}</tbody></table><p class="muted">Fix-up queue: ${Object.keys(S.retry).length} words — ${Object.values(S.retry).map(r=>r.word).join(', ')||'empty'}</p><p class="muted">Practice lessons done: ${S.lessonsDone} · Big reviews: ${S.reviewsDone}</p></div>`;
+  $('#tab').querySelectorAll('select').forEach(sel=>sel.onchange=()=>{if(!sel.value)return;const s=pat(sel.dataset.p);s.status=sel.value;s.practiceDays=0;save();tabPat();});}
+function tabHeart(){const c=S.heart.cards;const ws=Object.keys(c);const m=ws.filter(w=>c[w].box>=4),l=ws.filter(w=>c[w].box<4);$('#tab').innerHTML=`<div class="card"><div class="row spread"><div><div class="muted">Known by heart</div><div class="stat">${m.length}</div></div><div><div class="muted">Learning</div><div class="stat">${l.length}</div></div><div><div class="muted">Not started</div><div class="stat">${FRY.length-ws.length}</div></div></div><div class="bar"><i><b style="width:${m.length/FRY.length*100}%"></b></i>${m.length}/${FRY.length}</div></div>
+  <div class="card"><h3 style="margin-top:0">Learning now</h3><p>${l.map(w=>`<span class="pill needs-work">${esc(w)} · box ${c[w].box}</span> `).join('')||'<span class="muted">none</span>'}</p><h3>Known by heart</h3><p>${m.map(w=>`<span class="pill mastered">${esc(w)}</span> `).join('')||'<span class="muted">none yet</span>'}</p><div class="row"><button class="small" id="add5">Add 5 new words now</button></div></div>`;$('#add5').onclick=()=>{heartIntroduce(5);save();tabHeart();};}
+function tabRec(){const rs=S.recordings.slice().reverse();$('#tab').innerHTML=`<div class="card"><p class="muted">Her recordings of single sounds. Play hers, play the model words, then mark it. Marks show in the day log.</p>${rs.length?`<table><tbody>${rs.map(r=>`<tr><td><b>${esc(r.g)}</b><div class="muted">${r.d} · ${esc(r.kw.join(', '))}</div></td><td><button class="small" data-play="${r.id}">▶ hers</button> <button class="small" data-model="${r.id}">▶ words</button></td><td><button class="small ${r.mark===true?'right':''}" data-ok="${r.id}">✓</button> <button class="small ${r.mark===false?'wrong':''}" data-no="${r.id}">✗</button></td></tr>`).join('')}</tbody></table><div class="row" style="margin-top:10px"><button class="small" id="clearRec">Delete all recordings</button></div>`:'<p class="muted">No recordings yet. They are made during Practice when the mic is on.</p>'}</div>`;
+  const find=id=>S.recordings.find(r=>r.id===id);$('#tab').querySelectorAll('[data-play]').forEach(b=>b.onclick=()=>playData(find(b.dataset.play).data));$('#tab').querySelectorAll('[data-model]').forEach(b=>b.onclick=()=>say(find(b.dataset.model).kw.join('. ')));
+  const mark=(id,v)=>{const r=find(id);r.mark=v;const l=S.log.find(x=>x.rec===id);if(l)l.ok=v;save();tabRec();};$('#tab').querySelectorAll('[data-ok]').forEach(b=>b.onclick=()=>mark(b.dataset.ok,true));$('#tab').querySelectorAll('[data-no]').forEach(b=>b.onclick=()=>mark(b.dataset.no,false));const cr=$('#clearRec');if(cr)cr.onclick=()=>{if(confirm('Delete all recordings?')){S.recordings=[];save();tabRec();}};}
+function tabAssign(){const m=mainStep();$('#tab').innerHTML=`<div class="card"><p>Next up automatically: <b>${m?esc(m.title):'nothing — all patterns done'}</b></p><p class="muted">Override what today's main step is. Clears after that activity is finished.</p><select id="ap">${PATTERNS.map(p=>`<option value="${p.id}">${esc(p.name)} (${statusOf(p.id)})</option>`).join('')}</select><div class="row" style="margin-top:10px"><button class="small" id="asP">Assign practice</button><button class="small" id="asC">Assign check-up</button><button class="small ghost" id="asX">Clear</button></div>${S.assign?`<p class="muted">Currently assigned: ${S.assign.kind} · ${esc(P(S.assign.pat).name)}</p>`:''}</div>`;const set=k=>{S.assign={kind:k,pat:$('#ap').value};save();tabAssign();};$('#asP').onclick=()=>set('practice');$('#asC').onclick=()=>set('checkup');$('#asX').onclick=()=>{S.assign=null;save();tabAssign();};}
+function tabSet(){const st=S.settings;$('#tab').innerHTML=`<div class="card"><h3 style="margin-top:0">Child</h3><input type="text" id="name" placeholder="Her name" value="${esc(S.child)}"><h3>Parent PIN</h3><input type="text" inputmode="numeric" id="pinNew" value="${esc(S.pin)}">
+  <h3>Voice</h3><select id="voice"><option value="">Automatic</option>${TTS.voices.map(v=>`<option value="${esc(v.name)}" ${st.voice===v.name?'selected':''}>${esc(v.name)} (${v.lang})</option>`).join('')}</select><div class="row" style="margin-top:8px"><span class="muted">Speed</span><input type="number" id="rate" step="0.05" min="0.5" max="1.2" value="${st.rate}" style="width:110px"><button class="small" id="test">Test voice</button></div>
+  <h3>Answering</h3><div class="row"><label><input type="checkbox" id="tiles" ${st.tiles?'checked':''}> Letter tiles for spelling (off = keyboard)</label></div><div class="row"><label><input type="checkbox" id="mic" ${st.mic?'checked':''}> Use microphone (read aloud + sound recording)</label></div>
+  <h3>Daily amounts</h3><div class="row"><span class="grow">Heart words per day</span><input type="number" id="hpd" value="${st.heartPerDay}" style="width:90px"></div><div class="row"><span class="grow">Fix-up words per day</span><input type="number" id="rpd" value="${st.retryPerDay}" style="width:90px"></div><div class="row"><span class="grow">Practice days before re-check (Phase 1)</span><input type="number" id="pd1" value="${st.practiceDays}" style="width:90px"></div><div class="row"><span class="grow">Practice days before check-up (Phase 2)</span><input type="number" id="pd2" value="${st.phase2PracticeDays}" style="width:90px"></div>
+  <div class="row" style="margin-top:14px"><button class="primary" id="saveSet">Save settings</button></div></div>
+  <div class="card"><h3 style="margin-top:0">Backup</h3><p class="muted">Progress lives on this iPad only. Export a backup now and then (it goes to the Files app), and import it to restore.</p><div class="row"><button class="small" id="exp">Export backup</button><label class="small" style="display:inline-block"><input type="file" id="imp" accept="application/json" class="hidden"><button class="small" id="impBtn">Import backup</button></label></div><p class="muted" style="margin-top:14px">Speech: ${TTS.ok?'available':'not available'} · Mic recognition: ${REC.ok?'available':'not available'} · Recording: ${window.MediaRecorder?'available':'not available'}</p><div class="row" style="margin-top:14px"><button class="small wrong" id="reset">Erase everything</button></div></div>`;
+  $('#test').onclick=()=>{S.settings.voice=$('#voice').value;S.settings.rate=+$('#rate').value||0.85;say('The cat sat on the mat. Cake, ride, hope.');};
+  $('#saveSet').onclick=()=>{S.child=$('#name').value.trim();if($('#pinNew').value.trim())S.pin=$('#pinNew').value.trim();st.voice=$('#voice').value;st.rate=+$('#rate').value||0.85;st.tiles=$('#tiles').checked;st.mic=$('#mic').checked;st.heartPerDay=+$('#hpd').value||10;st.retryPerDay=+$('#rpd').value||5;st.practiceDays=+$('#pd1').value||3;st.phase2PracticeDays=+$('#pd2').value||4;save();toast('Saved');};
+  $('#exp').onclick=()=>{const blob=new Blob([JSON.stringify(S)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='phonics-backup-'+today()+'.json';document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},2000);};
+  $('#impBtn').onclick=()=>$('#imp').click();$('#imp').onchange=e=>{const f=e.target.files[0];if(!f)return;const fr=new FileReader();fr.onload=()=>{try{const s=JSON.parse(fr.result);if(s.v!==1||!s.patterns)throw 0;if(confirm('Replace all current progress with this backup?')){S=migrate(s);save();toast('Backup restored');dashboard('cal');}}catch(x){toast('That file is not a phonics backup');}};fr.readAsText(f);};
+  $('#reset').onclick=()=>{if(confirm('Erase all progress, settings and recordings? Export a backup first if you want to keep anything.')){localStorage.removeItem(KEY);S=DEFAULT_STATE();home();}};}
+/* ===================== INIT ===================== */
+window.addEventListener('load',()=>{if(!S.child){setTitle('Welcome','Set up in 10 seconds');main().innerHTML=`<div class="card"><h2 style="margin-top:0">Who is practicing?</h2><input type="text" id="nm" placeholder="Her name"><p class="muted" style="margin-top:12px">Parent dashboard PIN starts as <b>1234</b>. Change it in Parent → Settings.</p><div class="row" style="margin-top:12px"><button class="primary big grow" id="go">Let's go</button></div></div>`;$('#go').onclick=()=>{S.child=$('#nm').value.trim()||'friend';save();say('Hi '+S.child+'! Let us practice.');home();};}else home();});
+</script>
+</body>
+</html>
